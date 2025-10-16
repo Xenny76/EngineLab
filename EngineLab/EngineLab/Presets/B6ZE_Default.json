@@ -1,0 +1,39 @@
+{
+  "name": "Miata B6ZE Default",
+  "layout": "i4",
+  "cylinders": 4,
+  "bore_mm": 78,
+  "stroke_mm": 83.6,
+  "compressionRatio": 9.4,
+  "valvesPerCylinder": 4,
+  "intakeValveDiameter_mm": 31,
+  "exhaustValveDiameter_mm": 26,
+  "cam": {
+    "intakeMaxLift_mm": 9.0,
+    "exhaustMaxLift_mm": 9.0,
+    "intakeDuration_deg050": 230,
+    "exhaustDuration_deg050": 224,
+    "lobeSeparationAngle_deg": 110
+  },
+  "plenumVolume_cc": 2000,
+  "runnerLength_mm": 320,
+  "throttleDiameter_mm": 55,
+  "header": "_421",
+  "primaryLength1_mm": 420,
+  "primaryID_mm": 36,
+  "injection": "port",
+  "fuel": "pumpRegular",
+  "afr_Stoich": 14.7,
+  "fuel_LHV_MJ_per_kg": 43.0,
+  "wot_Lambda": 0.88,
+  "friction": {
+    "a_kPa": 80,
+    "b_kPa_per_mps": 6.0,
+    "c_kPa_per_mps2": 0.25
+  },
+  "ambientPressure_kPa": 101.325,
+  "ambientTemp_K": 298.15,
+  "intakeAirTemp_K": 298.15,
+  "redline_RPM": 7200,
+  "revLimit_RPM": 7300
+}
