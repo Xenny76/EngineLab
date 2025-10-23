@@ -1,7 +1,7 @@
-﻿using EngineLab.Models;
+﻿using EngineLabLib.Models;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-namespace EngineLab.Services
+namespace EngineLabLib.Services
 {
     public static class JsonLoadSave
     {
@@ -13,6 +13,7 @@ namespace EngineLab.Services
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
             ReadCommentHandling = JsonCommentHandling.Skip, // allow // and /* */ in files
             AllowTrailingCommas = true,
+            NumberHandling = JsonNumberHandling.AllowReadingFromString,
             Converters =
         {
             new JsonStringEnumConverter(JsonNamingPolicy.CamelCase), // enums as strings
