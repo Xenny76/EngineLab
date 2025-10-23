@@ -20,13 +20,8 @@ namespace EngineLabLib.Modification
                     case "CompressionRatio":
                         dst = dst with { CompressionRatio = ToDouble(s.Value) }; break;
                     case "Toggles.CompressionBehavior":
-                        dst = dst with
-                        {
-                            Toggles = dst.Toggles with
-                            {
-                                CompressionBehavior = Enum.Parse<CompressionBehavior>(s.Value!.ToString()!, true)
-                            }
-                        }; break;
+                        dst = dst with { Toggles = dst.Toggles with { CompressionBehavior = CoerceCB(s.Value!) } };
+                        break;
 
                     // --- valvetrain
                     case "Cam.IntakeDuration_deg050":
@@ -69,6 +64,14 @@ namespace EngineLabLib.Modification
         private static double? ToNullableDouble(object? v) => v is null ? null : ToDouble(v);
         private static int ToInt(object? v) => Convert.ToInt32(v, CultureInfo.InvariantCulture);
         private static int? ToNullableInt(object? v) => v is null ? null : ToInt(v);
-    }
 
+        private static CompressionBehavior CoerceCB(object value) => value switch
+        {
+            CompressionBehavior e => e,
+            string s when Enum.TryParse<CompressionBehavior>(s, true, out var e2) => e2,
+            bool b => b ? CompressionBehavior.GeometryDefinesCR : CompressionBehavior.FixedCR,
+            int i => i != 0 ? CompressionBehavior.GeometryDefinesCR : CompressionBehavior.FixedCR,
+            _ => throw new NotSupportedException($"Cannot coerce '{value}' to CompressionBehavior.")
+        };
+    }
 }

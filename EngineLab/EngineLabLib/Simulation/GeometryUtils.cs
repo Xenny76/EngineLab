@@ -18,6 +18,8 @@ namespace EngineLabLib.Simulation
             double Vgasket_m3 = Math.PI / 4.0 * gbore_m * gbore_m * gthk_m;
 
             double Vc_m3 = (Vch_cc - Vdish_cc) / 1e6 + Ab * deck_m + Vgasket_m3;
+            if (Vc_m3 <= 0)
+                throw new InvalidDataException($"Computed clearance volume <= 0 (Vc={Vc_m3}). Check chamber/dish/gasket/deck inputs.");
             return (Vd_cyl + Vc_m3) / Vc_m3;
         }
     }

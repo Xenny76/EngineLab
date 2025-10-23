@@ -80,6 +80,12 @@ namespace EngineLabLib.Services
             if (e.Redline_RPM <= 0 || e.RevLimit_RPM <= 0 || e.RevLimit_RPM < e.Redline_RPM)
                 errs.Add("Redline/RevLimit invalid.");
 
+            if (e.Toggles.CompressionBehavior == CompressionBehavior.GeometryDefinesCR)
+            {
+                if (e.ChamberVolume_cc is null)
+                    errs.Add("GeometryDefinesCR requires at least ChamberVolume_cc.");
+            }
+
             if (errs.Count > 0) throw new InvalidDataException(string.Join("\n", errs));
         }
 

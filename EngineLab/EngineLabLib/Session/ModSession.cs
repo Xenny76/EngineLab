@@ -32,11 +32,18 @@ namespace EngineLabLib.Session
             foreach (var s in sets)
             {
                 var (coerced, note) = PathConstraints.Clamp(s.Path, s.Value!, Current);
+                if (note == "Disabled for current layout.") continue; // <— skip write
                 if (note is not null) OnGuardRail?.Invoke(s.Path, note);
                 patch.Sets.Add(new ModPatch.SetOp(s.Path, coerced));
             }
 
             Current = ModApplier.Apply(Current, patch);
+
+            if (Current.RevLimit_RPM < Current.Redline_RPM)
+            {
+                Current = ModApplier.Apply(Current, new ModPatch { Sets = { new("RevLimit_RPM", Current.Redline_RPM) } });
+                OnGuardRail?.Invoke("RevLimit_RPM", "Rev limit raised to match redline.");
+            }
 
             // geometry-driven CR update
             if (Current.Toggles.CompressionBehavior == CompressionBehavior.GeometryDefinesCR &&
