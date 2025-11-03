@@ -216,5 +216,4 @@
         public bool EnableInjectorCapacityLimit { get; set; } = true;
         public CompressionBehavior CompressionBehavior { get; set; } = CompressionBehavior.GeometryDefinesCR;          // true: use detailed chamber geometry if available
     }
-
 }

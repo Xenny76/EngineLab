@@ -85,6 +85,11 @@ namespace EngineLabLib.Services
                 if (e.ChamberVolume_cc is null)
                     errs.Add("GeometryDefinesCR requires at least ChamberVolume_cc.");
             }
+            if (e.Toggles.CompressionBehavior == CompressionBehavior.FixedCR)
+            {
+                if (e.CompressionRatio is null)
+                    errs.Add("FixedCR requires CompressionRatio to be set.");
+            }
 
             if (errs.Count > 0) throw new InvalidDataException(string.Join("\n", errs));
         }

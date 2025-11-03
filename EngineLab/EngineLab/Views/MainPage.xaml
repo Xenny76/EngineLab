@@ -1,0 +1,77 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="EngineLab.Views.DynoPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:sp="clr-namespace:ScottPlot.Maui;assembly=ScottPlot.Maui"
+    Title="Dyno">
+
+    <Grid x:Name="RootGrid"
+          Padding="12"
+          RowSpacing="8"
+          ColumnSpacing="12"
+          RowDefinitions="Auto,*"
+          ColumnDefinitions="7*,3*">
+
+        <Label x:Name="Status"
+               Grid.Row="0"
+               Grid.ColumnSpan="2"
+               Text="OK" />
+
+        <!-- Left: ScottPlot rendered to bitmap -->
+        <Border x:Name="PlotHost"
+                Grid.Row="1"
+                Grid.Column="0"
+                Padding="0"
+                Stroke="Black"
+                StrokeDashArray="4,4">
+            <Image x:Name="DynoImage" Aspect="AspectFit" />
+        </Border>
+
+        <!-- Right: quick mod controls -->
+        <Border Grid.Row="1" Grid.Column="1" Padding="12" StrokeShape="RoundRectangle 8">
+            <VerticalStackLayout Spacing="12">
+
+                <Label Text="Quick mods" FontAttributes="Bold" />
+
+                <!-- Throttle Diameter -->
+                <Grid ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto">
+                    <Label Grid.Column="0" Text="Throttle Ø (mm)" VerticalOptions="Center" />
+                    <Slider x:Name="SliderThrottle"
+                            Grid.Column="1"
+                            Minimum="0" Maximum="100"
+                            ValueChanged="OnThrottleChanged" />
+                    <Label x:Name="ValThrottle"
+                           Grid.Column="2"
+                           HorizontalTextAlignment="End"
+                           WidthRequest="64" />
+                </Grid>
+
+                <!-- Intake Duration @ .050 -->
+                <Grid ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto">
+                    <Label Grid.Column="0" Text="Intake Dur @ .050 (°)" VerticalOptions="Center" />
+                    <Slider x:Name="SliderIntakeDur"
+                            Grid.Column="1"
+                            Minimum="180" Maximum="340"
+                            ValueChanged="OnIntakeDurChanged" />
+                    <Label x:Name="ValIntakeDur"
+                           Grid.Column="2"
+                           HorizontalTextAlignment="End"
+                           WidthRequest="64" />
+                </Grid>
+
+                <!-- Guard-rail notifications -->
+                <Label x:Name="GuardRail"
+                       FontSize="12"
+                       TextColor="OrangeRed"
+                       LineBreakMode="WordWrap" />
+
+                <!-- Comparison metrics -->
+                <Label x:Name="Metrics"
+                       FontAttributes="Italic"
+                       LineBreakMode="WordWrap" />
+
+            </VerticalStackLayout>
+        </Border>
+    </Grid>
+</ContentPage>

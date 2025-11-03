@@ -4,13 +4,13 @@ namespace EngineLabLib.Simulation
 {
     public sealed class DynoConfig
     {
-        public int RpmStart { get; init; } = 1500;
+        public int RpmStart { get; init; } = 200;
         public int RpmStop { get; init; } = 7500;
         public int StepRpm { get; init; } = 100;
         public bool WheelBasis { get; init; } = true;
     }
 
-    public readonly record struct DynoPoint(int Rpm, double TorqueNm, double Hp);
+    public readonly record struct DynoPoint(int Rpm, double TorqueLbFt, double Hp);
 
     public sealed class DynoCurve
     {
@@ -28,7 +28,7 @@ namespace EngineLabLib.Simulation
                 var a = src.Points[Math.Max(0, j)];
                 var b = src.Points[Math.Min(n - 1, j + 1)];
                 double t = (b.Rpm == a.Rpm) ? 0 : (rpm - a.Rpm) / (double)(b.Rpm - a.Rpm);
-                double tq = a.TorqueNm + t * (b.TorqueNm - a.TorqueNm);
+                double tq = a.TorqueLbFt + t * (b.TorqueLbFt - a.TorqueLbFt);
                 dst.Points.Add(new DynoPoint(rpm, tq, tq * rpm / 5252.0));
             }
             return dst;
@@ -38,20 +38,20 @@ namespace EngineLabLib.Simulation
         {
             if (IsEmpty) return (default, default);
             var peakHp = Points[0]; var peakTq = Points[0];
-            foreach (var p in Points) { if (p.Hp > peakHp.Hp) peakHp = p; if (p.TorqueNm > peakTq.TorqueNm) peakTq = p; }
+            foreach (var p in Points) { if (p.Hp > peakHp.Hp) peakHp = p; if (p.TorqueLbFt > peakTq.TorqueLbFt) peakTq = p; }
             return (peakHp, peakTq);
         }
 
         public static double AvgTorqueIn(DynoCurve c, int rpmA, int rpmB)
         {
             if (c.IsEmpty) return 0;
-            double area = 0; int lastRpm = c.Points[0].Rpm; double lastTq = c.Points[0].TorqueNm;
+            double area = 0; int lastRpm = c.Points[0].Rpm; double lastTq = c.Points[0].TorqueLbFt;
             foreach (var p in c.Points)
             {
-                if (p.Rpm < rpmA) { lastRpm = p.Rpm; lastTq = p.TorqueNm; continue; }
+                if (p.Rpm < rpmA) { lastRpm = p.Rpm; lastTq = p.TorqueLbFt; continue; }
                 if (p.Rpm > rpmB) break;
-                area += 0.5 * (p.TorqueNm + lastTq) * (p.Rpm - lastRpm);
-                lastRpm = p.Rpm; lastTq = p.TorqueNm;
+                area += 0.5 * (p.TorqueLbFt + lastTq) * (p.Rpm - lastRpm);
+                lastRpm = p.Rpm; lastTq = p.TorqueLbFt;
             }
             return area / Math.Max(1, rpmB - rpmA);
         }
@@ -69,7 +69,7 @@ namespace EngineLabLib.Simulation
         public DynoPoint CurrentPeakHp { get; init; }
         public DynoPoint CurrentPeakTq { get; init; }
         public double PeakHpGain => CurrentPeakHp.Hp - BaselinePeakHp.Hp;
-        public double PeakTqGain => CurrentPeakTq.TorqueNm - BaselinePeakTq.TorqueNm;
+        public double PeakTqGain => CurrentPeakTq.TorqueLbFt - BaselinePeakTq.TorqueLbFt;
         public double MidAvgTqGain_2500_4500 { get; init; }
     }
 
@@ -95,7 +95,7 @@ namespace EngineLabLib.Simulation
             for (int i = 0; i < baseRes.Points.Count && i < currRes.Points.Count; i++)
             {
                 var a = baseRes.Points[i]; var b = currRes.Points[i];
-                double dtq = b.TorqueNm - a.TorqueNm;
+                double dtq = b.TorqueLbFt - a.TorqueLbFt;
                 delta.Points.Add(new DynoPoint(a.Rpm, dtq, dtq * a.Rpm / 5252.0));
             }
 
