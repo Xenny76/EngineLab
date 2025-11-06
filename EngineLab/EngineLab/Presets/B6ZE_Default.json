@@ -1,39 +1,118 @@
 {
-  "name": "Miata B6ZE Default",
+  "name": "Mazda MX-5 Miata NA6 (B6ZE) 1990–1993 USA — Stock",
   "layout": "i4",
   "cylinders": 4,
-  "bore_mm": 78,
+  "bore_mm": 78.0,
   "stroke_mm": 83.6,
+  "rodLength_mm": 133.0,
   "compressionRatio": 9.4,
+
   "valvesPerCylinder": 4,
-  "intakeValveDiameter_mm": 31,
-  "exhaustValveDiameter_mm": 26,
+  "intakeValveDiameter_mm": 31.0,
+  "exhaustValveDiameter_mm": 26.0,
+
   "cam": {
-    "intakeMaxLift_mm": 9.0,
-    "exhaustMaxLift_mm": 9.0,
-    "intakeDuration_deg050": 230,
-    "exhaustDuration_deg050": 224,
+    "intakeMaxLift_mm": 7.86,
+    "exhaustMaxLift_mm": 7.90,
+    "intakeDuration_deg050": 192,
+    "exhaustDuration_deg050": 204,
     "lobeSeparationAngle_deg": 110
   },
-  "plenumVolume_cc": 2000,
+
+  "vvt": null,
+  "vvl": null,
+
+  "plenumVolume_cc": 1800,
   "runnerLength_mm": 320,
+  "runnerLengthShort_mm": null,
+  "runnerSwitchToShort_RPM": null,
   "throttleDiameter_mm": 55,
+
   "header": "_421",
   "primaryLength1_mm": 420,
+  "primaryLength2_mm": null,
   "primaryID_mm": 36,
+  "collectorID_mm": null,
+  "catBackpressure_kPa": null,
+  "exhaustBackpressure_kPa_ByRPM": null,
+
   "injection": "port",
   "fuel": "pumpRegular",
   "afr_Stoich": 14.7,
   "fuel_LHV_MJ_per_kg": 43.0,
-  "wot_Lambda": 0.88,
-  "friction": {
-    "a_kPa": 60,
-    "b_kPa_per_mps": 4.5,
-    "c_kPa_per_mps2": 0.2
+  "wot_Lambda": 0.80,
+
+  "injectorsPerCylinder": 1,
+  "injectorFlow_cc_per_min": 230,
+  "fuelPressure_bar": 3.0,
+  "injectorDutyLimit_0to1": 0.85,
+
+  "wiebe": {
+    "a": 5.0,
+    "m": 2.0,
+    "burnDuration_deg": null,
+    "k0": null,
+    "k1_Bore": null,
+    "k2_PistonSpeed": null
   },
+
+  "knock": {
+    "octane_RON": 91.0,
+    "safetyMargin_deg": 2.0,
+    "enableKnockCap": true
+  },
+
+  "spark": {
+    "searchWindowMinus_deg": 10.0,
+    "searchWindowPlus_deg": 20.0,
+    "baseSpark_degBTDC_ByRPM": null
+  },
+
+  "heatTransfer": {
+    "c1": 2.28,
+    "c2": 0.00324,
+    "c3": 0.0,
+    "area_Head_m2": null,
+    "area_Cylinder_m2": null,
+    "area_Piston_m2": null,
+    "coolantTemp_K": 363.15
+  },
+
+  "friction": {
+    "a_kPa": 80.0,
+    "b_kPa_per_mps": 6.0,
+    "c_kPa_per_mps2": 0.25,
+    "accessoryTorque_Nm_ByRPM": null
+  },
+
   "ambientPressure_kPa": 101.325,
   "ambientTemp_K": 298.15,
   "intakeAirTemp_K": 298.15,
+  "exhaustPressure_kPa": 101.325,
+
   "redline_RPM": 7200,
-  "revLimit_RPM": 7300
+  "revLimit_RPM": 7300,
+  "softTaper_RPM": 400,
+
+  "headFlow_Intake_CFM28": null,
+  "headFlow_Exhaust_CFM28": null,
+  "intakeLiftCurve_deg_to_mm": null,
+  "exhaustLiftCurve_deg_to_mm": null,
+
+  "resonance": {
+    "intakeBumpGain_0to1": 0.03,
+    "exhaustBumpGain_0to1": 0.03,
+    "exhaustDipGain_0to1": 0.08,
+    "featureWidth_RPM": 450.0,
+    "helmholtzTuningCoeff": null
+  },
+
+  "toggles": {
+    "useHeadFlowPointsWhenAvailable": true,
+    "enableResonanceModel": true,
+    "enableHeatTransfer": true,
+    "enableKnockLimit": true,
+    "enableInjectorCapacityLimit": true,
+    "compressionBehavior": "fixedCR"
+  }
 }

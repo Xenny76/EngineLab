@@ -1,77 +1,307 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage
-    x:Class="EngineLab.Views.DynoPage"
+    x:Class="EngineLab.Views.MainPage"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    xmlns:sp="clr-namespace:ScottPlot.Maui;assembly=ScottPlot.Maui"
     Title="Dyno">
 
     <Grid x:Name="RootGrid"
-          Padding="12"
-          RowSpacing="8"
-          ColumnSpacing="12"
-          RowDefinitions="Auto,*"
-          ColumnDefinitions="7*,3*">
+        Padding="12"
+        RowSpacing="8"
+        ColumnSpacing="12"
+        RowDefinitions="Auto,*"
+        ColumnDefinitions="7*,3*">
 
+        <!-- Status -->
         <Label x:Name="Status"
-               Grid.Row="0"
-               Grid.ColumnSpan="2"
-               Text="OK" />
+           Grid.Row="0"
+           Grid.ColumnSpan="2"
+           Text="Initializing…"
+           FontAttributes="Bold" />
 
-        <!-- Left: ScottPlot rendered to bitmap -->
+        <!-- Plot area -->
         <Border x:Name="PlotHost"
-                Grid.Row="1"
-                Grid.Column="0"
-                Padding="0"
-                Stroke="Black"
-                StrokeDashArray="4,4">
+            Grid.Row="1"
+            Grid.Column="0"
+            Padding="0"
+            Stroke="Black"
+            StrokeDashArray="4,4">
             <Image x:Name="DynoImage" Aspect="AspectFit" />
         </Border>
 
-        <!-- Right: quick mod controls -->
+        <!-- Right: controls (scrollable) + pinned metrics -->
         <Border Grid.Row="1" Grid.Column="1" Padding="12" StrokeShape="RoundRectangle 8">
-            <VerticalStackLayout Spacing="12">
+            <Grid RowDefinitions="*,Auto">
 
-                <Label Text="Quick mods" FontAttributes="Bold" />
+                <!-- Scrollable controls -->
+                <ScrollView Grid.Row="0">
+                    <VerticalStackLayout Spacing="12">
 
-                <!-- Throttle Diameter -->
-                <Grid ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto">
-                    <Label Grid.Column="0" Text="Throttle Ø (mm)" VerticalOptions="Center" />
-                    <Slider x:Name="SliderThrottle"
-                            Grid.Column="1"
-                            Minimum="0" Maximum="100"
-                            ValueChanged="OnThrottleChanged" />
-                    <Label x:Name="ValThrottle"
-                           Grid.Column="2"
-                           HorizontalTextAlignment="End"
-                           WidthRequest="64" />
-                </Grid>
+                        <Label Text="Quick Mods" FontAttributes="Bold" />
 
-                <!-- Intake Duration @ .050 -->
-                <Grid ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto">
-                    <Label Grid.Column="0" Text="Intake Dur @ .050 (°)" VerticalOptions="Center" />
-                    <Slider x:Name="SliderIntakeDur"
-                            Grid.Column="1"
-                            Minimum="180" Maximum="340"
-                            ValueChanged="OnIntakeDurChanged" />
-                    <Label x:Name="ValIntakeDur"
-                           Grid.Column="2"
-                           HorizontalTextAlignment="End"
-                           WidthRequest="64" />
-                </Grid>
+                        <!-- ========== CORE GEOMETRY ========== -->
+                        <Label Text="Core Geometry" FontAttributes="Bold" />
 
-                <!-- Guard-rail notifications -->
-                <Label x:Name="GuardRail"
-                       FontSize="12"
-                       TextColor="OrangeRed"
-                       LineBreakMode="WordWrap" />
+                        <!-- Bore -->
+                        <Grid ColumnDefinitions="Auto,*,Auto,Auto" RowDefinitions="Auto">
+                            <Label Grid.Column="0" Text="Bore" VerticalOptions="Center" />
+                            <Slider x:Name="SliderBore" Grid.Column="1"
+                      AutomationId="Bore_mm"
+                      Minimum="0" Maximum="200"
+                      ValueChanged="OnSliderChanged" />
+                            <Entry x:Name="EntryBore" Grid.Column="2"
+                     AutomationId="Bore_mm"
+                     WidthRequest="72" HorizontalTextAlignment="End"
+                     Keyboard="Numeric"
+                     Completed="OnEntryCompleted"
+                     Unfocused="OnEntryUnfocused" />
+                            <Label Grid.Column="3" Text="mm" VerticalOptions="Center" />
+                        </Grid>
 
-                <!-- Comparison metrics -->
-                <Label x:Name="Metrics"
-                       FontAttributes="Italic"
-                       LineBreakMode="WordWrap" />
+                        <!-- Stroke -->
+                        <Grid ColumnDefinitions="Auto,*,Auto,Auto" RowDefinitions="Auto">
+                            <Label Grid.Column="0" Text="Stroke" VerticalOptions="Center" />
+                            <Slider x:Name="SliderStroke" Grid.Column="1"
+                      AutomationId="Stroke_mm"
+                      Minimum="0" Maximum="200"
+                      ValueChanged="OnSliderChanged" />
+                            <Entry x:Name="EntryStroke" Grid.Column="2"
+                     AutomationId="Stroke_mm"
+                     WidthRequest="72" HorizontalTextAlignment="End"
+                     Keyboard="Numeric"
+                     Completed="OnEntryCompleted"
+                     Unfocused="OnEntryUnfocused" />
+                            <Label Grid.Column="3" Text="mm" VerticalOptions="Center" />
+                        </Grid>
 
-            </VerticalStackLayout>
+                        <!-- ========== FUEL / LIMITS ========== -->
+                        <Label Text="Fuel &amp; Limits" FontAttributes="Bold" />
+
+                        <!-- WOT Lambda -->
+                        <Grid ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto">
+                            <Label Grid.Column="0" Text="WOT Lambda" VerticalOptions="Center" />
+                            <Slider x:Name="SliderLambda" Grid.Column="1"
+                      AutomationId="WOT_Lambda"
+                      Minimum="0.6" Maximum="1.2"
+                      ValueChanged="OnSliderChanged" />
+                            <Entry x:Name="EntryLambda" Grid.Column="2"
+                     AutomationId="WOT_Lambda"
+                     WidthRequest="72" HorizontalTextAlignment="End"
+                     Keyboard="Numeric"
+                     Completed="OnEntryCompleted"
+                     Unfocused="OnEntryUnfocused" />
+                        </Grid>
+
+                        <!-- Redline RPM -->
+                        <Grid ColumnDefinitions="Auto,*,Auto,Auto" RowDefinitions="Auto">
+                            <Label Grid.Column="0" Text="Redline" VerticalOptions="Center" />
+                            <Slider x:Name="SliderRedline" Grid.Column="1"
+                      AutomationId="Redline_RPM"
+                      Minimum="2000" Maximum="10000"
+                      ValueChanged="OnSliderChanged" />
+                            <Entry x:Name="EntryRedline" Grid.Column="2"
+                     AutomationId="Redline_RPM"
+                     WidthRequest="90" HorizontalTextAlignment="End"
+                     Keyboard="Numeric"
+                     Completed="OnEntryCompleted"
+                     Unfocused="OnEntryUnfocused" />
+                            <Label Grid.Column="3" Text="RPM" VerticalOptions="Center" />
+                        </Grid>
+
+                        <!-- ========== INTAKE ========== -->
+                        <Label Text="Intake" FontAttributes="Bold" />
+
+                        <!-- Runner Length -->
+                        <Grid ColumnDefinitions="Auto,*,Auto,Auto" RowDefinitions="Auto">
+                            <Label Grid.Column="0" Text="Runner Length" VerticalOptions="Center" />
+                            <Slider x:Name="SliderRunnerLen" Grid.Column="1"
+                      AutomationId="RunnerLength_mm"
+                      Minimum="0" Maximum="1000"
+                      ValueChanged="OnSliderChanged" />
+                            <Entry x:Name="EntryRunnerLen" Grid.Column="2"
+                     AutomationId="RunnerLength_mm"
+                     WidthRequest="72" HorizontalTextAlignment="End"
+                     Keyboard="Numeric"
+                     Completed="OnEntryCompleted"
+                     Unfocused="OnEntryUnfocused" />
+                            <Label Grid.Column="3" Text="mm" VerticalOptions="Center" />
+                        </Grid>
+
+                        <!-- Throttle Diameter -->
+                        <Grid ColumnDefinitions="Auto,*,Auto,Auto" RowDefinitions="Auto">
+                            <Label Grid.Column="0" Text="Throttle Ø" VerticalOptions="Center" />
+                            <Slider x:Name="SliderThrottle" Grid.Column="1"
+                      AutomationId="ThrottleDiameter_mm"
+                      Minimum="0" Maximum="120"
+                      ValueChanged="OnSliderChanged" />
+                            <Entry x:Name="EntryThrottle" Grid.Column="2"
+                     AutomationId="ThrottleDiameter_mm"
+                     WidthRequest="72" HorizontalTextAlignment="End"
+                     Keyboard="Numeric"
+                     Completed="OnEntryCompleted"
+                     Unfocused="OnEntryUnfocused" />
+                            <Label Grid.Column="3" Text="mm" VerticalOptions="Center" />
+                        </Grid>
+
+                        <!-- ========== CAM / VALVETRAIN ========== -->
+                        <Label Text="Cam / Valvetrain" FontAttributes="Bold" />
+
+                        <!-- Intake Duration -->
+                        <Grid ColumnDefinitions="Auto,*,Auto,Auto" RowDefinitions="Auto">
+                            <Label Grid.Column="0" Text="Intake Dur @ .050" VerticalOptions="Center" />
+                            <Slider x:Name="SliderIntakeDur" Grid.Column="1"
+                      AutomationId="Cam.IntakeDuration_deg050"
+                      Minimum="160" Maximum="360"
+                      ValueChanged="OnSliderChanged" />
+                            <Entry x:Name="EntryIntakeDur" Grid.Column="2"
+                     AutomationId="Cam.IntakeDuration_deg050"
+                     WidthRequest="72" HorizontalTextAlignment="End"
+                     Keyboard="Numeric"
+                     Completed="OnEntryCompleted"
+                     Unfocused="OnEntryUnfocused" />
+                            <Label Grid.Column="3" Text="°" VerticalOptions="Center" />
+                        </Grid>
+
+                        <!-- Exhaust Duration -->
+                        <Grid ColumnDefinitions="Auto,*,Auto,Auto" RowDefinitions="Auto">
+                            <Label Grid.Column="0" Text="Exhaust Dur @ .050" VerticalOptions="Center" />
+                            <Slider x:Name="SliderExhaustDur" Grid.Column="1"
+                      AutomationId="Cam.ExhaustDuration_deg050"
+                      Minimum="160" Maximum="360"
+                      ValueChanged="OnSliderChanged" />
+                            <Entry x:Name="EntryExhaustDur" Grid.Column="2"
+                     AutomationId="Cam.ExhaustDuration_deg050"
+                     WidthRequest="72" HorizontalTextAlignment="End"
+                     Keyboard="Numeric"
+                     Completed="OnEntryCompleted"
+                     Unfocused="OnEntryUnfocused" />
+                            <Label Grid.Column="3" Text="°" VerticalOptions="Center" />
+                        </Grid>
+
+                        <!-- Intake Max Lift -->
+                        <Grid ColumnDefinitions="Auto,*,Auto,Auto" RowDefinitions="Auto">
+                            <Label Grid.Column="0" Text="Intake Max Lift" VerticalOptions="Center" />
+                            <Slider x:Name="SliderIntLift" Grid.Column="1"
+                      AutomationId="Cam.IntakeMaxLift_mm"
+                      Minimum="0" Maximum="30"
+                      ValueChanged="OnSliderChanged" />
+                            <Entry x:Name="EntryIntLift" Grid.Column="2"
+                     AutomationId="Cam.IntakeMaxLift_mm"
+                     WidthRequest="72" HorizontalTextAlignment="End"
+                     Keyboard="Numeric"
+                     Completed="OnEntryCompleted"
+                     Unfocused="OnEntryUnfocused" />
+                            <Label Grid.Column="3" Text="mm" VerticalOptions="Center" />
+                        </Grid>
+
+                        <!-- Exhaust Max Lift -->
+                        <Grid ColumnDefinitions="Auto,*,Auto,Auto" RowDefinitions="Auto">
+                            <Label Grid.Column="0" Text="Exhaust Max Lift" VerticalOptions="Center" />
+                            <Slider x:Name="SliderExhLift" Grid.Column="1"
+                      AutomationId="Cam.ExhaustMaxLift_mm"
+                      Minimum="0" Maximum="30"
+                      ValueChanged="OnSliderChanged" />
+                            <Entry x:Name="EntryExhLift" Grid.Column="2"
+                     AutomationId="Cam.ExhaustMaxLift_mm"
+                     WidthRequest="72" HorizontalTextAlignment="End"
+                     Keyboard="Numeric"
+                     Completed="OnEntryCompleted"
+                     Unfocused="OnEntryUnfocused" />
+                            <Label Grid.Column="3" Text="mm" VerticalOptions="Center" />
+                        </Grid>
+
+                        <!-- Lobe Separation Angle -->
+                        <Grid ColumnDefinitions="Auto,*,Auto,Auto" RowDefinitions="Auto">
+                            <Label Grid.Column="0" Text="Lobe Sep Angle" VerticalOptions="Center" />
+                            <Slider x:Name="SliderLSA" Grid.Column="1"
+                      AutomationId="Cam.LobeSeparationAngle_deg"
+                      Minimum="90" Maximum="130"
+                      ValueChanged="OnSliderChanged" />
+                            <Entry x:Name="EntryLSA" Grid.Column="2"
+                     AutomationId="Cam.LobeSeparationAngle_deg"
+                     WidthRequest="72" HorizontalTextAlignment="End"
+                     Keyboard="Numeric"
+                     Completed="OnEntryCompleted"
+                     Unfocused="OnEntryUnfocused" />
+                            <Label Grid.Column="3" Text="°" VerticalOptions="Center" />
+                        </Grid>
+
+                        <!-- ========== EXHAUST ========== -->
+                        <Label Text="Exhaust" FontAttributes="Bold" />
+
+                        <!-- Primary Length 1 -->
+                        <Grid ColumnDefinitions="Auto,*,Auto,Auto" RowDefinitions="Auto">
+                            <Label Grid.Column="0" Text="Primary Length 1" VerticalOptions="Center" />
+                            <Slider x:Name="SliderPrimLen1" Grid.Column="1"
+                      AutomationId="PrimaryLength1_mm"
+                      Minimum="0" Maximum="1000"
+                      ValueChanged="OnSliderChanged" />
+                            <Entry x:Name="EntryPrimLen1" Grid.Column="2"
+                     AutomationId="PrimaryLength1_mm"
+                     WidthRequest="72" HorizontalTextAlignment="End"
+                     Keyboard="Numeric"
+                     Completed="OnEntryCompleted"
+                     Unfocused="OnEntryUnfocused" />
+                            <Label Grid.Column="3" Text="mm" VerticalOptions="Center" />
+                        </Grid>
+
+                        <!-- Primary Length 2 -->
+                        <Grid ColumnDefinitions="Auto,*,Auto,Auto" RowDefinitions="Auto">
+                            <Label x:Name="LblPrimLen2" Grid.Column="0" Text="Primary Length 2" VerticalOptions="Center" />
+                            <Slider x:Name="SliderPrimLen2" Grid.Column="1"
+                      AutomationId="PrimaryLength2_mm"
+                      Minimum="0" Maximum="1000"
+                      ValueChanged="OnSliderChanged" />
+                            <Entry x:Name="EntryPrimLen2" Grid.Column="2"
+                     AutomationId="PrimaryLength2_mm"
+                     WidthRequest="72" HorizontalTextAlignment="End"
+                     Keyboard="Numeric"
+                     Completed="OnEntryCompleted"
+                     Unfocused="OnEntryUnfocused" />
+                            <Label Grid.Column="3" Text="mm" VerticalOptions="Center" />
+                        </Grid>
+
+                        <!-- Primary ID -->
+                        <Grid ColumnDefinitions="Auto,*,Auto,Auto" RowDefinitions="Auto">
+                            <Label Grid.Column="0" Text="Primary ID" VerticalOptions="Center" />
+                            <Slider x:Name="SliderPrimID" Grid.Column="1"
+                      AutomationId="PrimaryID_mm"
+                      Minimum="0" Maximum="100"
+                      ValueChanged="OnSliderChanged" />
+                            <Entry x:Name="EntryPrimID" Grid.Column="2"
+                     AutomationId="PrimaryID_mm"
+                     WidthRequest="72" HorizontalTextAlignment="End"
+                     Keyboard="Numeric"
+                     Completed="OnEntryCompleted"
+                     Unfocused="OnEntryUnfocused" />
+                            <Label Grid.Column="3" Text="mm" VerticalOptions="Center" />
+                        </Grid>
+
+                        <!-- Guard-rail notifications -->
+                        <Label x:Name="GuardRail"
+                   FontSize="12"
+                   TextColor="OrangeRed"
+                   LineBreakMode="WordWrap" />
+
+                    </VerticalStackLayout>
+                </ScrollView>
+
+                <!-- Pinned metrics panel -->
+                <Border Grid.Row="1"
+                Padding="10"
+                BackgroundColor="{AppThemeBinding Light=#F7F7F8, Dark=#1E1E1E}"
+                Stroke="{AppThemeBinding Light=#DDDDDD, Dark=#2A2A2A}"
+                StrokeShape="RoundRectangle 8">
+                    <VerticalStackLayout Spacing="4">
+                        <Label Text="Comparison Metrics" FontAttributes="Bold" />
+                        <Label x:Name="Metrics"
+                   FontAttributes="Italic"
+                   LineBreakMode="WordWrap" />
+                    </VerticalStackLayout>
+                </Border>
+
+            </Grid>
         </Border>
+
     </Grid>
 </ContentPage>

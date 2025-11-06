@@ -26,7 +26,6 @@ namespace EngineLabLib.Modification
             ["Stroke_mm"] = new() { Min = 50, Max = 120, Step = 0.1 },
             ["WOT_Lambda"] = new() { Min = 0.80, Max = 1.05, Step = 0.01 },
             ["Redline_RPM"] = new() { Min = 3000, Max = 9500, Step = 50 },
-            ["RevLimit_RPM"] = new() { Min = 3200, Max = 9800, Step = 50 }, // dynamic Min = max(Min, Redline_RPM)
             ["PrimaryLength1_mm"] = new() { Min = 300, Max = 800, Step = 5 },
             ["PrimaryLength2_mm"] = new()
             {
@@ -64,10 +63,6 @@ namespace EngineLabLib.Modification
                 Step = c.Step,
                 IsEnabledWhen = c.IsEnabledWhen
             };
-
-            // Dynamic rule: RevLimit_RPM can't be below Redline_RPM
-            if (path.Equals("RevLimit_RPM", StringComparison.OrdinalIgnoreCase))
-                eff = eff with { Min = Math.Max(eff.Min ?? 0, cur.Redline_RPM) };
 
             return eff;
         }

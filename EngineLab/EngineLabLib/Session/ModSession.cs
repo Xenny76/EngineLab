@@ -39,12 +39,6 @@ namespace EngineLabLib.Session
 
             Current = ModApplier.Apply(Current, patch);
 
-            if (Current.RevLimit_RPM < Current.Redline_RPM)
-            {
-                Current = ModApplier.Apply(Current, new ModPatch { Sets = { new("RevLimit_RPM", Current.Redline_RPM) } });
-                OnGuardRail?.Invoke("RevLimit_RPM", "Rev limit raised to match redline.");
-            }
-
             // geometry-driven CR update
             if (Current.Toggles.CompressionBehavior == CompressionBehavior.GeometryDefinesCR &&
                 (Current.ChamberVolume_cc is not null || Current.HeadGasketThickness_mm is not null))

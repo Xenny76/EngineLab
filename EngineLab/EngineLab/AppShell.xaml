@@ -10,5 +10,5 @@
     <ShellContent
         Title="Dyno"
         Route="dyno"
-        ContentTemplate="{DataTemplate views:DynoPage}" />
+        ContentTemplate="{DataTemplate views:MainPage}" />
 </Shell>
