@@ -12,9 +12,6 @@ namespace EngineLabLib.Session
         public event Action<EngineModel>? OnSpecChanged;
         public event Action<string, string>? OnGuardRail; // (path,msg)
 
-        public int DebounceMs { get; init; } = 120;
-
-        private CancellationTokenSource? _cts;
         private readonly SynchronizationContext? _ui = uiContext; // optional UI marshal
 
         // --- Single field edit ------------------------------------------------
@@ -52,25 +49,13 @@ namespace EngineLabLib.Session
 
         private void DebouncedNotify()
         {
-            var old = Interlocked.Exchange(ref _cts, new CancellationTokenSource());
-            old?.Cancel();
-            old?.Dispose();
+            // Simple immediate notify – no background Tasks, no cancellation.
+            void fire() => OnSpecChanged?.Invoke(Current);
 
-            var token = _cts!.Token;
-            _ = Task.Run(async () =>
-            {
-                try
-                {
-                    await Task.Delay(TimeSpan.FromMilliseconds(DebounceMs), token);
-                    if (!token.IsCancellationRequested)
-                    {
-                        void fire() => OnSpecChanged?.Invoke(Current);
-                        if (_ui is not null) _ui.Post(_ => fire(), null);
-                        else fire();
-                    }
-                }
-                catch (TaskCanceledException) { /* ignore */ }
-            }, token);
+            if (_ui is not null)
+                _ui.Post(_ => fire(), null);  // marshal to UI thread
+            else
+                fire();
         }
 
         // ---------- Dyno compare seam (frontend calls this) -------------------

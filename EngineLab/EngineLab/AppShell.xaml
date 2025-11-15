@@ -6,9 +6,12 @@
     xmlns:views="clr-namespace:EngineLab.Views"
     Shell.FlyoutBehavior="Disabled">
 
-    <!-- The first ShellContent becomes the initial page -->
-    <ShellContent
-        Title="Dyno"
-        Route="dyno"
-        ContentTemplate="{DataTemplate views:MainPage}" />
+    <!-- First ShellContent = startup page -->
+    <Tab Title="Presets" Route="PresetsPage">
+        <ShellContent ContentTemplate="{DataTemplate views:PresetsPage}" />
+    </Tab>
+
+    <Tab Title="Dyno" Route="MainPage">
+        <ShellContent ContentTemplate="{DataTemplate views:MainPage}" />
+    </Tab>
 </Shell>

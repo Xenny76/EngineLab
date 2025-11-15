@@ -12,28 +12,35 @@ namespace EngineLab.Views
 {
     public partial class MainPage : ContentPage
     {
-        private bool _plotted;
-
         // session + dyno
         private ModSession? _session;
         private DynoConfig _cfg = new();
         private readonly SimulationModel _runner = new() { DrivetrainLossFraction = 0.15 };
 
-        // cached series (independent X for baseline/current)
+        private bool _handlingSpecChange;
+
+        // cached series...
         private double[]? _xsBase, _xsCur;
         private double[]? _hpBase, _tqBase;
         private double[]? _hpCur, _tqCur;
         private string _specName = "";
 
-        // UI guard
-        private bool _updatingUI;
+        // remember which preset we last loaded into this session
+        private string? _currentPresetId;
 
-        // path -> (slider, entry)
+        // UI guard etc...
+        private bool _updatingUI;
         private readonly Dictionary<string, (Slider slider, Entry entry)> _ctrl = new();
 
-        public MainPage()
+        // presets
+        private readonly PresetService _presets;
+
+        public MainPage(PresetService presets)
         {
             InitializeComponent();
+
+            _presets = presets;
+
             PlotHost.SizeChanged += (_, __) => RenderPlotToFit();
 
             _ctrl["Bore_mm"] = (SliderBore, EntryBore);
@@ -52,104 +59,252 @@ namespace EngineLab.Views
             _ctrl["PrimaryID_mm"] = (SliderPrimID, EntryPrimID);
         }
 
-        protected override void OnAppearing()
+        protected override async void OnAppearing()
         {
             base.OnAppearing();
-            if (_plotted) return;
-            _plotted = true;
-            _ = PlotOnceAsync();
+
+            try
+            {
+                await PlotOnceAsync();
+            }
+            catch (Exception ex)
+            {
+                Status.Text = "Dyno hard-failed";
+                GuardRail.Text = ex.ToString();
+                DynoImage.Source = null;
+            }
+        }
+
+        protected override void OnDisappearing()
+        {
+            base.OnDisappearing();
+            ResetSession();
+        }
+
+        private void ResetSession()
+        {
+            if (_session is null)
+                return;
+
+            _session.OnSpecChanged -= OnSessionSpecChanged;
+            _session.OnGuardRail -= OnGuardRailMessage;
+
+            _session = null;
+            _currentPresetId = null;
+        }
+
+        private void OnGuardRailMessage(string path, string msg)
+        {
+            MainThread.BeginInvokeOnMainThread(() => GuardRail.Text = $"{path}: {msg}");
+        }
+
+        // -------------------- Initial / reload dyno --------------------
+
+        private async Task SafePlotOnceAsync()
+        {
+            try
+            {
+                await PlotOnceAsync();
+            }
+            catch (Exception ex)
+            {
+                // Catch absolutely anything that leaked out of PlotOnceAsync
+                Status.Text = "Dyno hard-failed";
+                GuardRail.Text = ex.ToString();
+                DynoImage.Source = null;
+            }
         }
 
         private async Task PlotOnceAsync()
         {
             try
             {
-                Status.Text = "Loading preset…";
+                Status.Text = "Checking preset selection…";
 
-                // 1) Try embedded, then MAUI asset
-                string json = TryLoadEmbedded("B6ZE_Default.json")
-                              ?? await TryLoadMauiAssetAsync("B6ZE_Default.json")
-                              ?? throw new FileNotFoundException("B6ZE_Default.json not found as EmbeddedResource or MAUI asset.");
+                var preset = _presets.CurrentPreset;
+                if (preset is null)
+                {
+                    ClearDynoUi("No preset selected. Choose one on the Presets tab.");
+                    return;
+                }
 
-                // 2) Normalize toggles
+                // If we already loaded this exact preset and still have a session, don't rebuild it
+                if (_session is not null && _currentPresetId == preset.Id)
+                {
+                    Status.Text = $"OK — {_specName}";
+                    return;
+                }
+
+                // Switching preset (or first load) => tear down any old session
+                ResetSession();
+
+                // ---------- Load JSON ----------
+                string json;
+
+                if (preset.IsBuiltIn)
+                {
+                    json = TryLoadEmbedded(preset.JsonFileName)
+                           ?? await TryLoadMauiAssetAsync(preset.JsonFileName)
+                           ?? throw new FileNotFoundException(
+                               $"{preset.JsonFileName} not found as EmbeddedResource or MAUI asset.");
+                }
+                else
+                {
+                    string folder = Path.Combine(FileSystem.AppDataDirectory, "Presets");
+                    string path = Path.Combine(folder, preset.JsonFileName);
+
+                    if (!File.Exists(path))
+                        throw new FileNotFoundException($"User preset JSON not found: {path}");
+
+                    json = await File.ReadAllTextAsync(path);
+                }
+
                 json = NormalizeForFixedCR(json);
 
-                // 3) Deserialize
                 var spec = JsonLoadSave.FromJson(json);
-                _specName = spec.Name ?? "";
+                _specName = preset.Name ?? spec.Name ?? "";
+                Status.Text = $"Loaded preset: {_specName}";
 
-                // 4) Start session
+                // ---------- New session ----------
                 _session = new ModSession(spec, SynchronizationContext.Current);
                 _session.OnSpecChanged += OnSessionSpecChanged;
-                _session.OnGuardRail += (path, msg) =>
-                    MainThread.BeginInvokeOnMainThread(() => GuardRail.Text = $"{path}: {msg}");
+                _session.OnGuardRail += OnGuardRailMessage;
 
-                // 5) Dyno config — headroom used for BOTH engines (derived rev limit)
+                _currentPresetId = preset.Id;
+
                 _cfg = new DynoConfig
                 {
                     RpmStart = 1500,
                     StepRpm = 100,
                     WheelBasis = true,
                     RevHeadroomRpm = 200,
-                    RpmStop = spec.Redline_RPM + 200 // initial window
+                    RpmStop = spec.Redline_RPM + 200
                 };
 
-                // 6) Initial comparison
                 var res0 = _session.GetComparison(_cfg, _runner);
                 CacheSeries(res0);
 
-                // 7) Setup controls & mirror values
-                SetupAllControls(spec);
-                MirrorAll(spec);
+                _updatingUI = true;
+                try
+                {
+                    SetupAllControls(spec);
+                    MirrorAll(spec);
 
-                // 8) UI
+                    // enable controls now that we have a valid session/spec
+                    foreach (var (_, c) in _ctrl)
+                    {
+                        c.slider.IsEnabled = true;
+                        c.entry.IsEnabled = true;
+                    }
+                }
+                finally
+                {
+                    _updatingUI = false;
+                }
+
                 UpdateMetrics(res0);
                 RenderPlotToFit();
-                Status.Text = "OK";
+                Status.Text = $"OK — {_specName}";
             }
             catch (Exception ex)
             {
-                Content = new ScrollView
-                {
-                    Content = new Label
-                    {
-                        Text = "Dyno failed:\n\n" + ex,
-                        TextColor = Colors.Red,
-                        Padding = 16
-                    }
-                };
+                Status.Text = "Dyno failed";
+                GuardRail.Text = ex.ToString();
+                DynoImage.Source = null;
             }
+        }
+
+        private void ClearDynoUi(string statusMessage)
+        {
+            _session = null;
+            _cfg = new DynoConfig();
+
+            _xsBase = _hpBase = _tqBase = null;
+            _xsCur = _hpCur = _tqCur = null;
+            _currentPresetId = null;
+
+            // Clear slider/entry values and disable them
+            _updatingUI = true;
+            try
+            {
+                foreach (var (_, c) in _ctrl)
+                {
+                    c.slider.Value = c.slider.Minimum; // or any neutral value
+                    c.entry.Text = string.Empty;
+                    c.slider.IsEnabled = false;
+                    c.entry.IsEnabled = false;
+                }
+            }
+            finally
+            {
+                _updatingUI = false;
+            }
+
+            Status.Text = statusMessage;
+            Metrics.Text = string.Empty;
+            GuardRail.Text = string.Empty;
+            DynoImage.Source = null;
         }
 
         // -------------------- Session event --------------------
 
         private void OnSessionSpecChanged(EngineModel cur)
         {
-            // Grow X-window if redline grows (derived limit = redline + headroom)
-            int neededStop = Math.Max(_session!.Baseline.Redline_RPM, cur.Redline_RPM) + _cfg.RevHeadroomRpm;
-            if (neededStop != _cfg.RpmStop)
-                _cfg = new DynoConfig
-                {
-                    RpmStart = _cfg.RpmStart,
-                    RpmStop = neededStop,
-                    StepRpm = _cfg.StepRpm,
-                    WheelBasis = _cfg.WheelBasis,
-                    RevHeadroomRpm = _cfg.RevHeadroomRpm
-                };
+            // Prevent re-entrancy (just in case ModSession fires events in a chain)
+            if (_handlingSpecChange)
+                return;
 
-            var res = _session.GetComparison(_cfg, _runner);
-            CacheSeries(res);
-
-            _updatingUI = true;
+            _handlingSpecChange = true;
             try
             {
-                MirrorAll(cur);
-                UpdateConditionalEnable(cur);
-            }
-            finally { _updatingUI = false; }
+                if (_session is null)
+                {
+                    ClearDynoUi("No active session during spec change.");
+                    return;
+                }
 
-            UpdateMetrics(res);
-            RenderPlotToFit();
+                // Grow X-window if redline grows (derived limit = redline + headroom)
+                int neededStop = Math.Max(_session.Baseline.Redline_RPM, cur.Redline_RPM) + _cfg.RevHeadroomRpm;
+                if (neededStop != _cfg.RpmStop)
+                {
+                    _cfg = new DynoConfig
+                    {
+                        RpmStart = _cfg.RpmStart,
+                        RpmStop = neededStop,
+                        StepRpm = _cfg.StepRpm,
+                        WheelBasis = _cfg.WheelBasis,
+                        RevHeadroomRpm = _cfg.RevHeadroomRpm
+                    };
+                }
+
+                // Dyno recompute
+                var res = _session.GetComparison(_cfg, _runner);
+                CacheSeries(res);
+
+                // Mirror back to controls without firing slider events
+                _updatingUI = true;
+                try
+                {
+                    MirrorAll(cur);
+                    UpdateConditionalEnable(cur);
+                }
+                finally
+                {
+                    _updatingUI = false;
+                }
+
+                UpdateMetrics(res);
+                RenderPlotToFit();
+            }
+            catch (Exception ex)
+            {
+                // Catch any dyno / session weirdness instead of crashing the app
+                GuardRail.Text = "Dyno update failed: " + ex.Message;
+            }
+            finally
+            {
+                _handlingSpecChange = false;
+            }
         }
 
         // -------------------- Controls setup -------------------
@@ -224,7 +379,10 @@ namespace EngineLab.Views
             if (!_ctrl.TryGetValue(path, out var c)) return;
             var eff = PathConstraints.Effective(path, _session?.Current ?? new EngineModel());
 
-            c.slider.Value = Clamp(value, c.slider.Minimum, c.slider.Maximum);
+            double newVal = Clamp(value, c.slider.Minimum, c.slider.Maximum);
+            if (Math.Abs(newVal - c.slider.Value) > 1e-6)
+                c.slider.Value = newVal;
+
             c.entry.Text = FormatForStep(value, eff.Step);
         }
 
@@ -232,24 +390,37 @@ namespace EngineLab.Views
 
         private void OnSliderChanged(object sender, ValueChangedEventArgs e)
         {
-            if (_updatingUI) return;
-            if (sender is not Slider s || string.IsNullOrWhiteSpace(s.AutomationId)) return;
+            if (_updatingUI)
+                return;
+            if (sender is not Slider s || string.IsNullOrWhiteSpace(s.AutomationId))
+                return;
+
             string path = s.AutomationId;
 
-            double raw = e.NewValue;
-            (double coerced, string text) = CoerceAndFormat(path, raw);
-
-            if (Math.Abs(coerced - raw) > 1e-6)
+            try
             {
-                _updatingUI = true;
-                s.Value = coerced;
-                _updatingUI = false;
+                if (_session is null)
+                {
+                    GuardRail.Text = "No active dyno session. Select a preset on the Presets tab.";
+                    return;
+                }
+
+                double raw = e.NewValue;
+                (double coerced, string text) = CoerceAndFormat(path, raw);
+
+                // Do NOT touch s.Value here.
+                // Let OnSessionSpecChanged → MirrorAll() push the snapped value back.
+
+                if (_ctrl.TryGetValue(path, out var c))
+                    c.entry.Text = text;
+
+                // This is the only place a slider change hits the session
+                _session.Set(path, coerced);
             }
-
-            if (_ctrl.TryGetValue(path, out var c))
-                c.entry.Text = text;
-
-            _session?.Set(path, coerced);
+            catch (Exception ex)
+            {
+                GuardRail.Text = "Slider change failed: " + ex.Message;
+            }
         }
 
         private void OnEntryCompleted(object sender, EventArgs e) => CommitEntry(sender as Entry);
@@ -259,6 +430,12 @@ namespace EngineLab.Views
         {
             if (entry is null || string.IsNullOrWhiteSpace(entry.AutomationId)) return;
             if (_updatingUI) return;
+
+            if (_session is null)
+            {
+                GuardRail.Text = "No active dyno session. Select a preset on the Presets tab.";
+                return;
+            }
 
             string path = entry.AutomationId;
             if (!double.TryParse(entry.Text, NumberStyles.Float, CultureInfo.InvariantCulture, out double raw))
@@ -274,7 +451,7 @@ namespace EngineLab.Views
                 _updatingUI = false;
             }
 
-            _session?.Set(path, coerced);
+            _session.Set(path, coerced);
         }
 
         // -------------------- Coercion / formatting ------------
@@ -366,6 +543,69 @@ namespace EngineLab.Views
                 $"Peak HP:  {m.BaselinePeakHp.Hp:F1} @ {m.BaselinePeakHp.Rpm}  →  {m.CurrentPeakHp.Hp:F1} @ {m.CurrentPeakHp.Rpm}  (Δ {m.PeakHpGain:+0.0;-0.0;0.0})\n" +
                 $"Peak TQ:  {m.BaselinePeakTq.TorqueLbFt:F1} @ {m.BaselinePeakTq.Rpm}  →  {m.CurrentPeakTq.TorqueLbFt:F1} @ {m.CurrentPeakTq.Rpm}  (Δ {m.PeakTqGain:+0.0;-0.0;0.0})\n" +
                 $"Mid Avg TQ (2500–4500):  {m.MidAvgTqGain_2500_4500:+0.0;-0.0;0.0} lb-ft";
+        }
+
+        // -------------------- Preset toolbar actions ----------
+
+        private async void OnSavePresetClicked(object sender, EventArgs e)
+        {
+            if (_session?.Current is null)
+            {
+                await DisplayAlert("Nothing to save", "Load and modify an engine before saving a preset.", "OK");
+                return;
+            }
+
+            string? name = await DisplayPromptAsync(
+                "Save preset",
+                "Preset name:",
+                accept: "Save",
+                cancel: "Cancel",
+                maxLength: 60,
+                keyboard: Keyboard.Text);
+
+            if (string.IsNullOrWhiteSpace(name))
+                return;
+
+            string? desc = await DisplayPromptAsync(
+                "Save preset",
+                "Optional description:",
+                accept: "OK",
+                cancel: "Skip",
+                maxLength: 140,
+                keyboard: Keyboard.Text);
+
+            var preset = await _presets.SaveUserPresetAsync(_session.Current, name.Trim(), desc);
+            _specName = preset.Name;
+            Status.Text = $"Saved preset: {preset.Name}";
+            await DisplayAlert("Preset saved", $"Saved as \"{preset.Name}\"", "OK");
+            RenderPlotToFit();
+        }
+
+        private async void OnChangePresetClicked(object sender, EventArgs e)
+        {
+            await _presets.InitializeAsync();
+
+            if (_presets.Presets.Count == 0)
+            {
+                await DisplayAlert("No presets", "There are no presets available yet.", "OK");
+                return;
+            }
+
+            var names = _presets.Presets.Select(p => p.Name).ToArray();
+            string? picked = await DisplayActionSheet("Select preset", "Cancel", null, names);
+
+            if (string.IsNullOrWhiteSpace(picked) || picked == "Cancel")
+                return;
+
+            var chosen = _presets.Presets.FirstOrDefault(p => p.Name == picked);
+            if (chosen is null)
+                return;
+
+            _presets.SetCurrentPreset(chosen);
+            GuardRail.Text = string.Empty;
+            _specName = chosen.Name;
+
+            await SafePlotOnceAsync();
         }
 
         // -------------------- IO helpers -----------------------

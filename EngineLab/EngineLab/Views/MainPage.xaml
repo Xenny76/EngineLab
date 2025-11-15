@@ -5,6 +5,18 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     Title="Dyno">
 
+    <!-- Toolbar: presets + save preset -->
+    <ContentPage.ToolbarItems>
+        <ToolbarItem Text="Presets"
+                     Order="Primary"
+                     Priority="0"
+                     Clicked="OnChangePresetClicked" />
+        <ToolbarItem Text="Save preset"
+                     Order="Primary"
+                     Priority="1"
+                     Clicked="OnSavePresetClicked" />
+    </ContentPage.ToolbarItems>
+
     <Grid x:Name="RootGrid"
         Padding="12"
         RowSpacing="8"
