@@ -53,12 +53,15 @@
 		<MauiImage Update="Resources\Images\dotnet_bot.png" Resize="True" BaseSize="300,185" />
 		
 		<!-- Custom Fonts -->
-		<MauiFont Include="Resources\Fonts\*" />
+		<MauiFont Include="Resources\Fonts\*" />		<None Remove="Presets\F23A1_Default.json" />
+
+		<!-- Raw Assets (also remove the "Resources\Raw" prefix) -->
 		<EmbeddedResource Include="Presets\B6ZE_Default.json">
 		  <LogicalName>B6ZE_Default.json</LogicalName>
 		</EmbeddedResource>
-
-		<!-- Raw Assets (also remove the "Resources\Raw" prefix) -->
+		<EmbeddedResource Include="Presets\F23A1_Default.json">
+			<LogicalName>F23A1_Default.json</LogicalName>
+		</EmbeddedResource>
 	</ItemGroup>
 
 	<ItemGroup>

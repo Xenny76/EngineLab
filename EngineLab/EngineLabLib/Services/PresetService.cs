@@ -58,10 +58,18 @@ namespace EngineLabLib.Services
             yield return new EnginePreset
             {
                 Id = "stock_miata_b6ze",
-                Name = "Miata 1.6 B6ZE (Stock)",
+                Name = "Mazda 1.6 B6ZE (Stock)",
                 Description = "Baseline stock Miata engine.",
                 IsBuiltIn = true,
                 JsonFileName = "B6ZE_Default.json"
+            };
+            yield return new EnginePreset
+            {
+                Id = "stock_honda_f23a1",
+                Name = "Honda 2.3 F23A1 (Stock)",
+                Description = "Baseline stock Accord engine",
+                IsBuiltIn = true,
+                JsonFileName = "F23A1_Default.json"
             };
         }
 

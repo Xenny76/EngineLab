@@ -1,0 +1,85 @@
+{
+  "name": "Honda 2.3 F23A1 (Stock)",
+  "layout": "i4",
+  "cylinders": 4,
+  "bore_mm": 86.0,
+  "stroke_mm": 97.0,
+  "rodLength_mm": 141.0,
+  "compressionRatio": 9.3,
+
+  "valvesPerCylinder": 4,
+  "intakeValveDiameter_mm": 34.0,
+  "exhaustValveDiameter_mm": 29.0,
+
+  "cam": {
+    "intakeMaxLift_mm": 10.0,
+    "exhaustMaxLift_mm": 9.0,
+    "intakeDuration_deg050": 200,
+    "exhaustDuration_deg050": 194,
+    "lobeSeparationAngle_deg": 110
+  },
+
+  "vvl": {
+    "lowLift": {
+      "intakeMaxLift_mm": 7.0,
+      "exhaustMaxLift_mm": 9.0,
+      "intakeDuration_deg050": 176,
+      "exhaustDuration_deg050": 194,
+      "lobeSeparationAngle_deg": 110
+    },
+    "highLift": {
+      "intakeMaxLift_mm": 10.0,
+      "exhaustMaxLift_mm": 9.0,
+      "intakeDuration_deg050": 200,
+      "exhaustDuration_deg050": 194,
+      "lobeSeparationAngle_deg": 110
+    },
+    "switchOn_RPM": 3000,
+    "switchOff_RPM": 2800
+  },
+
+  "plenumVolume_cc": 2500,
+  "runnerLength_mm": 340,
+  "throttleDiameter_mm": 60.0,
+
+  "header": "Stock",
+  "primaryLength1_mm": 300,
+  "primaryID_mm": 32,
+  "collectorID_mm": 50.8,
+  "catBackpressure_kPa": 8.0,
+
+  "injection": "port",
+  "fuel": "pumpRegular",
+  "afr_Stoich": 14.7,
+  "fuel_LHV_MJ_per_kg": 43.0,
+  "wot_Lambda": 0.86,
+
+  "injectorsPerCylinder": 1,
+  "injectorFlow_cc_per_min": 240,
+  "fuelPressure_bar": 3.0,
+  "injectorDutyLimit_0to1": 0.85,
+
+  "friction": {
+    "a_kPa": 60.0,
+    "b_kPa_per_mps": 4.5,
+    "c_kPa_per_mps2": 0.2
+  },
+
+  "ambientPressure_kPa": 101.325,
+  "ambientTemp_K": 298.15,
+  "intakeAirTemp_K": 298.15,
+  "exhaustPressure_kPa": 101.325,
+
+  "redline_RPM": 6300,
+  "revLimit_RPM": 6700,
+  "softTaper_RPM": 400,
+
+  "toggles": {
+    "useHeadFlowPointsWhenAvailable": true,
+    "enableResonanceModel": true,
+    "enableHeatTransfer": true,
+    "enableKnockLimit": true,
+    "enableInjectorCapacityLimit": true,
+    "compressionBehavior": "geometryDefinesCR"
+  }
+}
