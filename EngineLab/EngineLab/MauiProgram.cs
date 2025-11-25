@@ -61,7 +61,7 @@ namespace EngineLab
                     }));
 
             // Pages that use PresetService via constructor injection
-            builder.Services.AddSingleton<MainPage>();
+            builder.Services.AddSingleton<DynoPage>();
             builder.Services.AddSingleton<PresetsPage>();
 
 #if DEBUG

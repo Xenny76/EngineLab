@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="EngineLab.Views.ComparePresetsPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:models="clr-namespace:EngineLabLib.Models;assembly=EngineLabLib"
+    xmlns:views="clr-namespace:EngineLab.Views"
+    x:DataType="views:ComparePresetsPage"
+    Title="Compare">
+
+    <Grid Padding="16"
+          RowSpacing="12"
+          ColumnSpacing="16"
+          RowDefinitions="Auto,Auto,*"
+          ColumnDefinitions="*,*">
+
+        <!-- Title -->
+        <Label Grid.Row="0"
+               Grid.ColumnSpan="2"
+               Text="Compare Engine Presets"
+               FontSize="24"
+               FontAttributes="Bold" />
+
+        <!-- Left column: Preset A -->
+        <VerticalStackLayout Grid.Row="1"
+                             Grid.Column="0"
+                             Spacing="4">
+            <Label Text="Preset A"
+                   FontAttributes="Bold" />
+
+            <CollectionView ItemsSource="{Binding Presets}"
+                            SelectionMode="Single"
+                            HeightRequest="220"
+                            SelectionChanged="OnLeftSelectionChanged">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="models:EnginePreset">
+                        <Frame Padding="6"
+                               Margin="0,2"
+                               HasShadow="False"
+                               BorderColor="#444444">
+                            <Label Text="{Binding Name}" />
+                        </Frame>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </VerticalStackLayout>
+
+        <!-- Right column: Preset B -->
+        <VerticalStackLayout Grid.Row="1"
+                             Grid.Column="1"
+                             Spacing="4">
+            <Label Text="Preset B"
+                   FontAttributes="Bold" />
+
+            <CollectionView ItemsSource="{Binding Presets}"
+                            SelectionMode="Single"
+                            HeightRequest="220"
+                            SelectionChanged="OnRightSelectionChanged">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="models:EnginePreset">
+                        <Frame Padding="6"
+                               Margin="0,2"
+                               HasShadow="False"
+                               BorderColor="#444444">
+                            <Label Text="{Binding Name}" />
+                        </Frame>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </VerticalStackLayout>
+
+        <!-- Dyno graph (always visible) -->
+        <VerticalStackLayout Grid.Row="2"
+                             Grid.ColumnSpan="2"
+                             Spacing="4">
+            <Label x:Name="StatusLabel"
+                   FontSize="12"
+                   TextColor="Gray" />
+
+            <Grid x:Name="PlotHost"
+                  HeightRequest="280">
+                <Image x:Name="DynoImage"
+                       Aspect="AspectFit" />
+            </Grid>
+        </VerticalStackLayout>
+
+    </Grid>
+</ContentPage>

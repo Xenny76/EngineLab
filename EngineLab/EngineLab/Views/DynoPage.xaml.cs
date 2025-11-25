@@ -10,7 +10,7 @@ using EngineLabLib.Session;
 
 namespace EngineLab.Views
 {
-    public partial class MainPage : ContentPage
+    public partial class DynoPage : ContentPage
     {
         // session + dyno
         private ModSession? _session;
@@ -35,7 +35,7 @@ namespace EngineLab.Views
         // presets
         private readonly PresetService _presets;
 
-        public MainPage(PresetService presets)
+        public DynoPage(PresetService presets)
         {
             InitializeComponent();
 

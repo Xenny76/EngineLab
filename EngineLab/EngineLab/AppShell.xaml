@@ -11,7 +11,11 @@
         <ShellContent ContentTemplate="{DataTemplate views:PresetsPage}" />
     </Tab>
 
-    <Tab Title="Dyno" Route="MainPage">
-        <ShellContent ContentTemplate="{DataTemplate views:MainPage}" />
+    <Tab Title="Dyno" Route="DynoPage">
+        <ShellContent ContentTemplate="{DataTemplate views:DynoPage}" />
+    </Tab>
+
+    <Tab Title="Compare" Route="ComparePresetsPage">
+        <ShellContent ContentTemplate="{DataTemplate views:ComparePresetsPage}" />
     </Tab>
 </Shell>

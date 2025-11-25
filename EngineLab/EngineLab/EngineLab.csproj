@@ -75,6 +75,15 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <Compile Update="Views\DynoPage.xaml.cs">
+	    <DependentUpon>DynoPage.xaml</DependentUpon>
+	  </Compile>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <MauiXaml Update="Views\ComparePresetsPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
 	  <MauiXaml Update="Views\PresetsPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
