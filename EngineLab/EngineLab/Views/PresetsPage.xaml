@@ -73,6 +73,7 @@
                                     Margin="8,0,0,0"
                                     VerticalOptions="Center"
                                     IsVisible="{Binding IsUserPreset}"
+                                    Clicked="OnDeletePresetClicked"
                                     BackgroundColor="#B91C1C"
                                     TextColor="White"
                                     CornerRadius="8"

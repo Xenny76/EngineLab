@@ -96,5 +96,10 @@ namespace EngineLab.Views
                 await DisplayAlert("Error", $"Failed to delete preset:\n{ex.Message}", "OK");
             }
         }
+
+        private void Button_Clicked(object sender, EventArgs e)
+        {
+
+        }
     }
 }
