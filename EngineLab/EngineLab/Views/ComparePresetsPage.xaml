@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage
     x:Class="EngineLab.Views.ComparePresetsPage"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
@@ -8,81 +7,101 @@
     x:DataType="views:ComparePresetsPage"
     Title="Compare">
 
-    <Grid Padding="16"
-          RowSpacing="12"
-          ColumnSpacing="16"
-          RowDefinitions="Auto,Auto,*"
-          ColumnDefinitions="*,*">
+    <ScrollView>
+        <Grid Padding="16"
+              RowSpacing="12"
+              ColumnSpacing="16"
+              RowDefinitions="Auto,Auto,*"
+              ColumnDefinitions="*,*">
 
-        <!-- Title -->
-        <Label Grid.Row="0"
-               Grid.ColumnSpan="2"
-               Text="Compare Engine Presets"
-               FontSize="24"
-               FontAttributes="Bold" />
+            <!-- Title -->
+            <Label Grid.Row="0"
+                   Grid.ColumnSpan="2"
+                   Text="Compare Engine Presets"
+                   FontSize="24"
+                   FontAttributes="Bold"
+                   TextColor="{AppThemeBinding Light={StaticResource MidnightBlue},
+                                             Dark={StaticResource White}}" />
 
-        <!-- Left column: Preset A -->
-        <VerticalStackLayout Grid.Row="1"
-                             Grid.Column="0"
-                             Spacing="4">
-            <Label Text="Preset A"
-                   FontAttributes="Bold" />
+            <!-- Left column: Preset A -->
+            <VerticalStackLayout Grid.Row="1"
+                                 Grid.Column="0"
+                                 Spacing="4">
+                <Label Text="Preset A"
+                       FontAttributes="Bold"
+                       TextColor="{AppThemeBinding Light={StaticResource Gray900},
+                                                 Dark={StaticResource Gray100}}" />
 
-            <CollectionView ItemsSource="{Binding Presets}"
-                            SelectionMode="Single"
-                            HeightRequest="220"
-                            SelectionChanged="OnLeftSelectionChanged">
-                <CollectionView.ItemTemplate>
-                    <DataTemplate x:DataType="models:EnginePreset">
-                        <Frame Padding="6"
-                               Margin="0,2"
-                               HasShadow="False"
-                               BorderColor="#444444">
-                            <Label Text="{Binding Name}" />
-                        </Frame>
-                    </DataTemplate>
-                </CollectionView.ItemTemplate>
-            </CollectionView>
-        </VerticalStackLayout>
+                <CollectionView ItemsSource="{Binding Presets}"
+                                SelectionMode="Single"
+                                HeightRequest="220"
+                                SelectionChanged="OnLeftSelectionChanged">
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="models:EnginePreset">
+                            <Border Style="{StaticResource CardBorder}"
+                                    Margin="0,2">
+                                <Label Text="{Binding Name}"
+                                       TextColor="{AppThemeBinding Light={StaticResource Gray900},
+                                                                 Dark={StaticResource Gray100}}" />
+                            </Border>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+            </VerticalStackLayout>
 
-        <!-- Right column: Preset B -->
-        <VerticalStackLayout Grid.Row="1"
-                             Grid.Column="1"
-                             Spacing="4">
-            <Label Text="Preset B"
-                   FontAttributes="Bold" />
+            <!-- Right column: Preset B -->
+            <VerticalStackLayout Grid.Row="1"
+                                 Grid.Column="1"
+                                 Spacing="4">
+                <Label Text="Preset B"
+                       FontAttributes="Bold"
+                       TextColor="{AppThemeBinding Light={StaticResource Gray900},
+                                                 Dark={StaticResource Gray100}}" />
 
-            <CollectionView ItemsSource="{Binding Presets}"
-                            SelectionMode="Single"
-                            HeightRequest="220"
-                            SelectionChanged="OnRightSelectionChanged">
-                <CollectionView.ItemTemplate>
-                    <DataTemplate x:DataType="models:EnginePreset">
-                        <Frame Padding="6"
-                               Margin="0,2"
-                               HasShadow="False"
-                               BorderColor="#444444">
-                            <Label Text="{Binding Name}" />
-                        </Frame>
-                    </DataTemplate>
-                </CollectionView.ItemTemplate>
-            </CollectionView>
-        </VerticalStackLayout>
+                <CollectionView ItemsSource="{Binding Presets}"
+                                SelectionMode="Single"
+                                HeightRequest="220"
+                                SelectionChanged="OnRightSelectionChanged">
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="models:EnginePreset">
+                            <Border Style="{StaticResource CardBorder}"
+                                    Margin="0,2">
+                                <Label Text="{Binding Name}"
+                                       TextColor="{AppThemeBinding Light={StaticResource Gray900},
+                                                                 Dark={StaticResource Gray100}}" />
+                            </Border>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+            </VerticalStackLayout>
 
-        <!-- Dyno graph (always visible) -->
-        <VerticalStackLayout Grid.Row="2"
-                             Grid.ColumnSpan="2"
-                             Spacing="4">
-            <Label x:Name="StatusLabel"
-                   FontSize="12"
-                   TextColor="Gray" />
+            <!-- Dyno graph -->
+            <Grid Grid.Row="2"
+                  Grid.ColumnSpan="2"
+                  RowDefinitions="Auto,*"
+                  RowSpacing="6">
 
-            <Grid x:Name="PlotHost"
-                  HeightRequest="280">
-                <Image x:Name="DynoImage"
-                       Aspect="AspectFit" />
+                <Label x:Name="StatusLabel"
+                       Grid.Row="0"
+                       FontSize="12"
+                       Margin="0,0,0,2"
+                       TextColor="{AppThemeBinding Light={StaticResource Gray500},
+                                                     Dark={StaticResource Gray400}}" />
+
+                <Border Grid.Row="1"
+                        Style="{StaticResource GraphBorder}"
+                        Margin="0">
+                    <Grid x:Name="PlotHost"
+                          HeightRequest="260"
+                          HorizontalOptions="Fill"
+                          VerticalOptions="Start">
+                        <Image x:Name="DynoImage"
+                               Aspect="AspectFit"
+                               HorizontalOptions="Fill"
+                               VerticalOptions="Fill" />
+                    </Grid>
+                </Border>
             </Grid>
-        </VerticalStackLayout>
-
-    </Grid>
+        </Grid>
+    </ScrollView>
 </ContentPage>

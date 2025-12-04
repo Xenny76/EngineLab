@@ -20,46 +20,44 @@
 
         <Label Text="Engine Presets"
                FontSize="24"
-               FontAttributes="Bold" />
+               FontAttributes="Bold"
+               TextColor="{AppThemeBinding Light={StaticResource MidnightBlue},
+                                         Dark={StaticResource White}}" />
 
-        <!-- Status / error text -->
         <Label x:Name="StatusLabel"
                FontSize="12"
                TextColor="OrangeRed"
                LineBreakMode="WordWrap" />
 
-        <!-- List of presets -->
         <CollectionView x:Name="PresetList"
                         ItemsSource="{Binding Presets}"
                         SelectionMode="Single"
                         SelectionChanged="OnPresetSelected">
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="models:EnginePreset">
-                    <Frame Margin="0,6"
-                           Padding="12"
-                           CornerRadius="12"
-                           HasShadow="True">
+                    <Border Margin="0,6"
+                            Style="{StaticResource CardBorder}">
 
-                        <!-- Use a grid so we can put text on the left, Delete button on the right -->
                         <Grid ColumnDefinitions="*,Auto"
                               RowDefinitions="Auto">
 
-                            <!-- Left side: name, description, type -->
                             <VerticalStackLayout Grid.Column="0" Spacing="4">
 
-                                <!-- Preset name -->
                                 <Label Text="{Binding Name}"
                                        FontSize="18"
-                                       FontAttributes="Bold" />
+                                       FontAttributes="Bold"
+                                       TextColor="{AppThemeBinding Light={StaticResource Gray900},
+                                                     Dark={StaticResource Gray100}}" />
 
-                                <!-- Optional description -->
                                 <Label Text="{Binding Description}"
                                        FontSize="13"
-                                       LineBreakMode="TailTruncation" />
+                                       LineBreakMode="TailTruncation"
+                                       TextColor="{AppThemeBinding Light={StaticResource Gray600},
+                                                     Dark={StaticResource Gray400}}" />
 
-                                <!-- Source info -->
                                 <Label FontSize="12"
-                                       TextColor="Gray">
+                                       TextColor="{AppThemeBinding Light={StaticResource Gray500},
+                                                     Dark={StaticResource Gray400}}">
                                     <Label.FormattedText>
                                         <FormattedString>
                                             <Span Text="Type: " />
@@ -70,15 +68,17 @@
 
                             </VerticalStackLayout>
 
-                            <!-- Right side: Delete button (only for user presets) -->
                             <Button Grid.Column="1"
                                     Text="Delete"
                                     Margin="8,0,0,0"
                                     VerticalOptions="Center"
                                     IsVisible="{Binding IsUserPreset}"
-                                    Clicked="OnDeletePresetClicked" />
+                                    BackgroundColor="#B91C1C"
+                                    TextColor="White"
+                                    CornerRadius="8"
+                                    Padding="10,6" />
                         </Grid>
-                    </Frame>
+                    </Border>
                 </DataTemplate>
             </CollectionView.ItemTemplate>
         </CollectionView>
